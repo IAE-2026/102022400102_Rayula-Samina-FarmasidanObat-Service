@@ -10,11 +10,16 @@ class PrescriptionItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'id_resep', 
-        'id_obat', 
-        'jumlah', 
+        'id_resep',
+        'id_obat',
+        'jumlah',
         'dosis'
     ];
+
+    public function resep()
+    {
+        return $this->belongsTo(Prescription::class, 'id_resep');
+    }
 
     public function obat()
     {

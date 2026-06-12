@@ -13,11 +13,12 @@ class Prescription extends Model
         'id_pasien', 
         'id_kunjungan', 
         'nama_dokter', 
-        'status'
+        'status',
+        'receipt_number'
     ];
 
     public function items()
     {
-        return $this->hasMany(PrescriptionItem::class);
+        return $this->hasMany(PrescriptionItem::class, 'id_resep');
     }
 }

@@ -11,7 +11,7 @@ class CheckApiKey
     {
         $apiKey = $request->header('X-IAE-KEY');
 
-        if (!$apiKey || $apiKey !== env('IAE_API_KEY')) {
+        if (!$apiKey !== env('102022400102')) { #diubah
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Unauthorized - Invalid API Key',

@@ -10,11 +10,11 @@ class Medicine extends Model
     use HasFactory;
 
     protected $fillable = [
-        'nama', 
-        'kategori', 
-        'deskripsi', 
-        'stok', 
-        'harga', 
-        'satuan'
+    'nama',
+    'kategori',
+    'deskripsi',
+    'stock',
+    'harga',
+    'satuan'
     ];
 }
