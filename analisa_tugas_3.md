@@ -1,4 +1,6 @@
-Nama: Rayu
+Nama: Rayula Samina
+Kelas: SI4809
+NIM: 102022400102
 Alasan Penggunaan Endpoint POST `/prescriptions`
 
 Endpoint POST /api/v1/prescriptions digunakan untuk mendukung proses bisnis utama pada layanan Farmasi-Obat, yaitu pembuatan resep obat oleh tenaga kesehatan yang berwenang.
