@@ -234,28 +234,31 @@ Memvalidasi request:
 10. Pengujian API Menggunakan Postman
 
 ### Prompt
-
 Membuat panduan pengujian endpoint menggunakan Postman.
 
-## Jawaban AI
-
+### Jawaban AI
 Endpoint yang diuji:
-
-http
-GET /api/v1/medicines
-GET /api/v1/prescriptions
-POST /api/v1/prescriptions
-
+- GET /api/v1/medicines
+- GET /api/v1/prescriptions
+- POST /api/v1/prescriptions
 
 Konfigurasi Authorization:
-
-text
-Type : Bearer Token
-Token : JWT dari SSO
-
+- Type: Bearer Token
+- Token: JWT dari SSO
 
 Menjelaskan bahwa API Key tidak dapat digunakan sebagai Bearer Token.
 
+11. Integrasi Akun Warga dan Pengujian Otomatis Terintegrasi (SOAP & RabbitMQ)
+
+### Prompt
+Tolong hubungkan sistem dengan akun Warga: warga25@ktp.iae.id & API-KEY: KEY-MHS-176 (simpan api key dalam .env). Buatkan pengujian otomatis untuk memvalidasi alur pemanggilan token M2M, SOAP audit sending, RabbitMQ event publishing, dan E2E pembuatan resep terotentikasi.
+
+### Jawaban AI
+1. Memperbarui file `.env` dengan kredensial warga25, `TEAM_ID=TEAM-25`, `SSO_API_KEY=KEY-MHS-176`, dan endpoint penerbitan RabbitMQ.
+2. Memperbaiki logic fallback env pada `SoapAuditService.php` agar lebih fleksibel saat membaca M2M API key.
+3. Membuat file unit & integration test otomatis di `tests/Feature/IntegrationTest.php` yang mensimulasikan login warga25, mengambil JWT token, memvalidasi SOAP, dan RabbitMQ.
+4. Menjalankan pengujian tersebut menggunakan PHPUnit di mana seluruh asersi berhasil lulus (4 pass).
+
 Kesimpulan
 
-AI digunakan sebagai asisten teknis selama proses pengembangan Farmasi & Obat Service untuk membantu konfigurasi Docker, database, integrasi SSO, debugging Laravel, serta pengujian API. Penggunaan AI mempercepat identifikasi masalah dan meningkatkan efisiensi pengembangan aplikasi.
+AI digunakan sebagai asisten teknis selama proses pengembangan Farmasi & Obat Service untuk membantu konfigurasi Docker, database, integrasi SSO, debugging Laravel, pengujian API, serta pembuatan pengujian integrasi otomatis. Penggunaan AI mempercepat identifikasi masalah dan meningkatkan efisiensi pengembangan aplikasi.

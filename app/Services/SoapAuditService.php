@@ -14,7 +14,7 @@ class SoapAuditService
     {
         try {
             $url = env('SSO_TOKEN_URL', 'https://iae-sso.virtualfri.id/api/v1/auth/token');
-            $apiKey = env('SSO_M2M_API_KEY', 'KEY-MHS-01');
+            $apiKey = env('SSO_M2M_API_KEY', env('SSO_API_KEY', 'KEY-MHS-176'));
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
@@ -50,7 +50,7 @@ class SoapAuditService
             return $this->generateFallbackReceipt();
         }
 
-        $teamId = env('IAE_TEAM_ID', 'TEAM-41');
+        $teamId = env('IAE_TEAM_ID', env('TEAM_ID', 'TEAM-25'));
         $logContentJson = json_encode($logData);
 
         // Construct SOAP XML Envelope (CDATA wrapper for JSON payload)

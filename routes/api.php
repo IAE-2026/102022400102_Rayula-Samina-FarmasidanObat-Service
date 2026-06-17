@@ -6,10 +6,6 @@ use App\Http\Controllers\Api\V1\PrescriptionController;
 
 Route::prefix('v1')->group(function () {
 
-    // Public Endpoints
-    Route::get('/medicines', [MedicineController::class, 'index']);
-    Route::get('/medicines/{id}', [MedicineController::class, 'show']);
-
     // Protected Endpoints (SSO Authentication)
     Route::middleware('auth.sso')->group(function () {
         Route::post('/prescriptions', [PrescriptionController::class, 'store']);

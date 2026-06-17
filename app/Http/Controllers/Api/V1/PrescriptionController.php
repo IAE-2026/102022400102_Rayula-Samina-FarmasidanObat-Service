@@ -40,20 +40,82 @@ class PrescriptionController extends Controller
 
     public function show($id)
     {
-        $resep = Prescription::with('items.obat')->find($id);
+        DB::beginTransaction();
 
-        if (!$resep) {
+        try {
+            $resep = Prescription::with('items.obat')->lockForUpdate()->find($id);
+
+            if (!$resep) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Resep tidak ditemukan',
+                    'errors'  => null
+                ], 404);
+            }
+
+            $originalStatus = $resep->status;
+
+            if ($originalStatus === 'pending') {
+                $resep->status = 'dispensed';
+                $resep->save();
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Resep tidak ditemukan',
-                'errors'  => null
-            ], 404);
+                'message' => 'Gagal memproses detail resep.',
+                'errors'  => $e->getMessage()
+            ], 500);
+        }
+
+        if ($originalStatus === 'pending') {
+            $resepDataForAudit = [
+                'id'            => $resep->id,
+                'id_pasien'     => $resep->id_pasien,
+                'id_kunjungan'  => $resep->id_kunjungan,
+                'nama_dokter'   => $resep->nama_dokter,
+                'status'        => $resep->status,
+                'items'         => $resep->items
+                    ->map(fn ($item) => [
+                        'id_obat'   => $item->id_obat,
+                        'nama_obat' => $item->obat->nama ?? 'Obat',
+                        'jumlah'    => $item->jumlah,
+                        'dosis'     => $item->dosis,
+                    ])
+                    ->toArray()
+            ];
+
+            $receiptNumber = $this->soapAuditService->sendAudit(
+                'PrescriptionDispensed',
+                $resepDataForAudit
+            );
+
+            if ($receiptNumber) {
+                $resep->update([
+                    'receipt_number' => $receiptNumber
+                ]);
+            }
+
+            $eventPayload = array_merge($resepDataForAudit, [
+                'receipt_number' => $resep->receipt_number,
+                'timestamp'      => now()->toIso8601String()
+            ]);
+
+            $this->eventPublisher->publishEvent(
+                'prescription.dispensed',
+                $eventPayload
+            );
         }
 
         return response()->json([
             'status'  => 'success',
             'message' => 'Data berhasil diambil',
-            'data'    => $resep,
+            'data'    => $resep->load('items.obat'),
             'meta'    => [
                 'nama_service' => 'pharmacy-service',
                 'versi_api'    => 'v1'
@@ -100,11 +162,9 @@ class PrescriptionController extends Controller
                     ], 400);
                 }
 
-                // Kurangi stok obat
                 $obat->stock -= $item['jumlah'];
                 $obat->save();
 
-                // Simpan detail resep
                 $resep->items()->create([
                     'id_resep' => $resep->id,
                     'id_obat'  => $item['id_obat'],
@@ -125,7 +185,6 @@ class PrescriptionController extends Controller
             ], 500);
         }
 
-        // SOAP Audit
         $resepDataForAudit = [
             'id'            => $resep->id,
             'id_pasien'     => $resep->id_pasien,
@@ -153,7 +212,6 @@ class PrescriptionController extends Controller
             ]);
         }
 
-        // Publish Event RabbitMQ
         $eventPayload = array_merge($resepDataForAudit, [
             'receipt_number' => $resep->receipt_number,
             'timestamp'      => now()->toIso8601String()
