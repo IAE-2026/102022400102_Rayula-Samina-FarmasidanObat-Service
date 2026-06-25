@@ -9,9 +9,9 @@
 
 ## Log Prompting
 
-### 9. Integrasi Antar Service
+### 1. Integrasi Antar Service
 **Prompt:**
-> "Sebutkan gimana caranya membuat kodingan 3 service yang nantinya akan saling nyambung menyambung"
+ "Sebutkan gimana caranya membuat kodingan 3 service yang nantinya akan saling nyambung menyambung"
 
 **Respons AI:**
 AI menjelaskan cara menyambungkan 3 service menggunakan HTTP Request antar service dengan `id_pasien` dan `id_kunjungan` sebagai penghubung. Alurnya:

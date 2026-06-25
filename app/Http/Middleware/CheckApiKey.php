@@ -11,11 +11,10 @@ class CheckApiKey
     {
         $apiKey = $request->header('X-IAE-KEY');
 
-        if (!$apiKey !== env('102022400102')) { #diubah
+        if ($apiKey !== env('API_KEY')) {
             return response()->json([
-                'status'  => 'error',
+                'status' => 'error',
                 'message' => 'Unauthorized - Invalid API Key',
-                'errors'  => null
             ], 401);
         }
 

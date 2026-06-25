@@ -23,6 +23,14 @@ class PrescriptionController extends Controller
         $this->eventPublisher = $eventPublisher;
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/prescriptions",
+     *     summary="Daftar resep",
+     *     tags={"Prescriptions"},
+     *     @OA\Response(response=200, description="Berhasil mengambil data resep")
+     * )
+     */
     public function index()
     {
         $daftarResep = Prescription::with('items.obat')->get();
@@ -38,22 +46,94 @@ class PrescriptionController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/prescriptions/{id}",
+     *     summary="Detail resep",
+     *     tags={"Prescriptions"},
+     *     @OA\Parameter(name="id", in="path", required=true, description="ID resep", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Berhasil mengambil detail resep"),
+     *     @OA\Response(response=404, description="Resep tidak ditemukan")
+     * )
+     */
     public function show($id)
     {
-        $resep = Prescription::with('items.obat')->find($id);
+        DB::beginTransaction();
 
-        if (!$resep) {
+        try {
+            $resep = Prescription::with('items.obat')->lockForUpdate()->find($id);
+
+            if (!$resep) {
+                DB::rollBack();
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Resep tidak ditemukan',
+                    'errors'  => null
+                ], 404);
+            }
+
+            $originalStatus = $resep->status;
+
+            if ($originalStatus === 'pending') {
+                $resep->status = 'dispensed';
+                $resep->save();
+            }
+
+            DB::commit();
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Resep tidak ditemukan',
-                'errors'  => null
-            ], 404);
+                'message' => 'Gagal memproses detail resep.',
+                'errors'  => $e->getMessage()
+            ], 500);
+        }
+
+        if ($originalStatus === 'pending') {
+            $resepDataForAudit = [
+                'id'            => $resep->id,
+                'id_pasien'     => $resep->id_pasien,
+                'id_kunjungan'  => $resep->id_kunjungan,
+                'nama_dokter'   => $resep->nama_dokter,
+                'status'        => $resep->status,
+                'items'         => $resep->items
+                    ->map(fn ($item) => [
+                        'id_obat'   => $item->id_obat,
+                        'nama_obat' => $item->obat->nama ?? 'Obat',
+                        'jumlah'    => $item->jumlah,
+                        'dosis'     => $item->dosis,
+                    ])
+                    ->toArray()
+            ];
+
+            $receiptNumber = $this->soapAuditService->sendAudit(
+                'PrescriptionDispensed',
+                $resepDataForAudit
+            );
+
+            if ($receiptNumber) {
+                $resep->update([
+                    'receipt_number' => $receiptNumber
+                ]);
+            }
+
+            $eventPayload = array_merge($resepDataForAudit, [
+                'receipt_number' => $resep->receipt_number,
+                'timestamp'      => now()->toIso8601String()
+            ]);
+
+            $this->eventPublisher->publishEvent(
+                'prescription.dispensed',
+                $eventPayload
+            );
         }
 
         return response()->json([
             'status'  => 'success',
             'message' => 'Data berhasil diambil',
-            'data'    => $resep,
+            'data'    => $resep->load('items.obat'),
             'meta'    => [
                 'nama_service' => 'pharmacy-service',
                 'versi_api'    => 'v1'
@@ -61,6 +141,28 @@ class PrescriptionController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/prescriptions",
+     *     summary="Buat resep",
+     *     tags={"Prescriptions"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(property="id_pasien", type="integer"),
+     *                 @OA\Property(property="id_kunjungan", type="integer"),
+     *                 @OA\Property(property="nama_dokter", type="string"),
+     *                 @OA\Property(property="items", type="array")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Resep berhasil dibuat"),
+     *     @OA\Response(response=400, description="Validasi gagal")
+     * )
+     */
     public function store(Request $request)
     {
         $tervalidasi = $request->validate([
@@ -100,11 +202,9 @@ class PrescriptionController extends Controller
                     ], 400);
                 }
 
-                // Kurangi stok obat
                 $obat->stock -= $item['jumlah'];
                 $obat->save();
 
-                // Simpan detail resep
                 $resep->items()->create([
                     'id_resep' => $resep->id,
                     'id_obat'  => $item['id_obat'],
@@ -125,7 +225,6 @@ class PrescriptionController extends Controller
             ], 500);
         }
 
-        // SOAP Audit
         $resepDataForAudit = [
             'id'            => $resep->id,
             'id_pasien'     => $resep->id_pasien,
@@ -153,7 +252,6 @@ class PrescriptionController extends Controller
             ]);
         }
 
-        // Publish Event RabbitMQ
         $eventPayload = array_merge($resepDataForAudit, [
             'receipt_number' => $resep->receipt_number,
             'timestamp'      => now()->toIso8601String()

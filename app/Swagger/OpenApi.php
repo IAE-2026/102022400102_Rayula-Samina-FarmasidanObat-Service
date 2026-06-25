@@ -2,13 +2,16 @@
 
 namespace App\Swagger;
 
-use OpenApi\Annotations as OA;
-
 /**
  * @OA\Info(
- *     title="Farmasi Obat API",
- *     version="1.0.0",
- *     description="Dokumentasi API Farmasi Obat",
+ *      version="1.0.0",
+ *      title="Farmasi Obat API",
+ *      description="Dokumentasi API Sistem Farmasi Obat"
+ * )
+ *
+ * @OA\Server(
+ *      url="http://localhost:8000",
+ *      description="Local Server"
  * )
  */
 class OpenApi
