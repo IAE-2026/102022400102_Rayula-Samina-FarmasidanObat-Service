@@ -9,7 +9,7 @@
 
 ## Log Prompting
 
-### 9. Integrasi Antar Service
+### 1. Integrasi Antar Service
 **Prompt:**
  "Sebutkan gimana caranya membuat kodingan 3 service yang nantinya akan saling nyambung menyambung"
 

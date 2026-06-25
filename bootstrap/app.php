@@ -13,7 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'auth.sso' => \App\Http\Middleware\FederatedSsoMiddleware::class,
+            'auth.sso'     => \App\Http\Middleware\FederatedSsoMiddleware::class,
+            'check.apikey' => \App\Http\Middleware\CheckApiKey::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

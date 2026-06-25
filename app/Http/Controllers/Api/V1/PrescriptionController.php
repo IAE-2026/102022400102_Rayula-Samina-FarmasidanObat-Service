@@ -23,6 +23,14 @@ class PrescriptionController extends Controller
         $this->eventPublisher = $eventPublisher;
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/prescriptions",
+     *     summary="Daftar resep",
+     *     tags={"Prescriptions"},
+     *     @OA\Response(response=200, description="Berhasil mengambil data resep")
+     * )
+     */
     public function index()
     {
         $daftarResep = Prescription::with('items.obat')->get();
@@ -38,6 +46,16 @@ class PrescriptionController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Get(
+     *     path="/api/v1/prescriptions/{id}",
+     *     summary="Detail resep",
+     *     tags={"Prescriptions"},
+     *     @OA\Parameter(name="id", in="path", required=true, description="ID resep", @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Berhasil mengambil detail resep"),
+     *     @OA\Response(response=404, description="Resep tidak ditemukan")
+     * )
+     */
     public function show($id)
     {
         DB::beginTransaction();
@@ -123,6 +141,28 @@ class PrescriptionController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *     path="/api/v1/prescriptions",
+     *     summary="Buat resep",
+     *     tags={"Prescriptions"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 type="object",
+     *                 @OA\Property(property="id_pasien", type="integer"),
+     *                 @OA\Property(property="id_kunjungan", type="integer"),
+     *                 @OA\Property(property="nama_dokter", type="string"),
+     *                 @OA\Property(property="items", type="array")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Resep berhasil dibuat"),
+     *     @OA\Response(response=400, description="Validasi gagal")
+     * )
+     */
     public function store(Request $request)
     {
         $tervalidasi = $request->validate([

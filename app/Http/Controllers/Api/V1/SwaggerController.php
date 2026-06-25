@@ -3,13 +3,93 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use OpenApi\Attributes as OA;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
-#[OA\Info(
-    version: "1.0.0",
-    title: "Farmasi Obat API",
-    description: "Dokumentasi API Farmasi Obat"
-)]
 class SwaggerController extends Controller
 {
+    public function index(): Response
+    {
+        return response()->view('swagger-ui', [
+            'specUrl' => url('/api/documentation/spec'),
+        ]);
+    }
+
+    public function spec(): JsonResponse
+    {
+        $spec = [
+            'openapi' => '3.0.0',
+            'info' => [
+                'title' => 'Farmasi Obat API',
+                'version' => '1.0.0',
+                'description' => 'Dokumentasi API Farmasi Obat. Gunakan header X-IAE-KEY: 102022400102',
+            ],
+            'security' => [
+                [
+                    'ApiKeyAuth' => [],
+                ],
+            ],
+            'components' => [
+                'securitySchemes' => [
+                    'ApiKeyAuth' => [
+                        'type' => 'apiKey',
+                        'in' => 'header',
+                        'name' => 'X-IAE-KEY',
+                    ],
+                ],
+            ],
+            'paths' => [
+                '/api/v1/prescriptions' => [
+                    'get' => [
+                        'summary' => 'Daftar resep',
+                        'responses' => [
+                            '200' => ['description' => 'Berhasil mengambil data resep'],
+                        ],
+                    ],
+                    'post' => [
+                        'summary' => 'Buat resep',
+                        'requestBody' => [
+                            'required' => true,
+                            'content' => [
+                                'application/json' => [
+                                    'schema' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'id_pasien' => ['type' => 'integer'],
+                                            'id_kunjungan' => ['type' => 'integer'],
+                                            'nama_dokter' => ['type' => 'string'],
+                                            'items' => ['type' => 'array'],
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                        'responses' => [
+                            '201' => ['description' => 'Resep berhasil dibuat'],
+                            '400' => ['description' => 'Validasi gagal'],
+                        ],
+                    ],
+                ],
+                '/api/v1/prescriptions/{id}' => [
+                    'get' => [
+                        'summary' => 'Detail resep',
+                        'parameters' => [
+                            [
+                                'name' => 'id',
+                                'in' => 'path',
+                                'required' => true,
+                                'schema' => ['type' => 'integer'],
+                            ],
+                        ],
+                        'responses' => [
+                            '200' => ['description' => 'Berhasil mengambil detail resep'],
+                            '404' => ['description' => 'Resep tidak ditemukan'],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        return response()->json($spec);
+    }
 }
