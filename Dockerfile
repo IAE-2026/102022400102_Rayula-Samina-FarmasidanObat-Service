@@ -8,7 +8,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
-    zip
+    zip \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install extension
 RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath
@@ -21,8 +22,7 @@ WORKDIR /app
 
 # Copy composer
 COPY composer.json composer.lock ./
-
-RUN composer install --ignore-platform-reqs --no-scripts
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
 
 # Copy project
 COPY . .
@@ -31,7 +31,7 @@ COPY . .
 RUN mkdir -p bootstrap/cache \
     && chmod -R 777 bootstrap/cache storage
 
-# Generate autoload
+# Generate autoload & key
 RUN composer dump-autoload --optimize --ignore-platform-reqs
 
 EXPOSE 8000
