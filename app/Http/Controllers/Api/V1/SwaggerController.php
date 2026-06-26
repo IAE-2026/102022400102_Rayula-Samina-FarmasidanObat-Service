@@ -50,6 +50,70 @@ class SwaggerController extends Controller
 
             'paths' => [
 
+    // Root API
+                '/api/v1' => [
+                    'get' => [
+                        'summary' => 'API Pharmacy Service',
+                        'responses' => [
+                            '200' => [
+                                'description' => 'API berhasil diakses',
+                            ],
+                        ],
+                    ],
+                ],
+
+                // Daftar obat
+                '/api/v1/medicines' => [
+                    'get' => [
+                        'summary' => 'Daftar obat',
+
+                        'security' => [
+                            [
+                                'ApiKeyAuth' => [],
+                            ],
+                        ],
+
+                        'responses' => [
+                            '200' => [
+                                'description' => 'Berhasil mengambil data obat',
+                            ],
+                        ],
+                    ],
+                ],
+
+            // Detail obat
+            '/api/v1/medicines/{id}' => [
+                'get' => [
+                    'summary' => 'Detail obat',
+
+                    'security' => [
+                        [
+                            'ApiKeyAuth' => [],
+                        ],
+                    ],
+
+                    'parameters' => [
+                        [
+                            'name' => 'id',
+                            'in' => 'path',
+                            'required' => true,
+                            'schema' => [
+                                'type' => 'integer',
+                            ],
+                        ],
+                    ],
+
+                    'responses' => [
+                        '200' => [
+                            'description' => 'Berhasil mengambil detail obat',
+                        ],
+                        '404' => [
+                            'description' => 'Obat tidak ditemukan',
+                        ],
+                    ],
+                ],
+            ],
+
                 '/api/v1/prescriptions' => [
 
                     'get' => [
@@ -161,7 +225,7 @@ class SwaggerController extends Controller
                 ],
             ],
         ];
-
+        
         return response()->json($spec);
     }
 }
