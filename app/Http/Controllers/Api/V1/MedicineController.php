@@ -14,7 +14,7 @@ class MedicineController extends Controller
             'status'  => 'success',
             'message' => 'Data berhasil diambil',
             'data'    => $daftarObat,
-            'meta'    => ['nama_service' => 'pharmacy-service', 'versi_api' => 'v1']
+            'meta'    => ['service_name' => 'pharmacy-service', 'api_version' => 'v1']
         ]);
     }
 
@@ -32,7 +32,7 @@ class MedicineController extends Controller
             'status'  => 'success',
             'message' => 'Data berhasil diambil',
             'data'    => $obat,
-            'meta'    => ['nama_service' => 'pharmacy-service', 'versi_api' => 'v1']
+            'meta'    => ['service_name' => 'pharmacy-service', 'api_version' => 'v1']
         ]);
     }
 }

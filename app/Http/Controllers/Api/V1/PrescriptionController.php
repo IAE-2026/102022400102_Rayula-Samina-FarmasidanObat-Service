@@ -40,8 +40,8 @@ class PrescriptionController extends Controller
             'message' => 'Data berhasil diambil',
             'data'    => $daftarResep,
             'meta'    => [
-                'nama_service' => 'pharmacy-service',
-                'versi_api'    => 'v1'
+                'service_name' => 'pharmacy-service',
+                'api_version'  => 'v1'
             ]
         ]);
     }
@@ -135,8 +135,8 @@ class PrescriptionController extends Controller
             'message' => 'Data berhasil diambil',
             'data'    => $resep->load('items.obat'),
             'meta'    => [
-                'nama_service' => 'pharmacy-service',
-                'versi_api'    => 'v1'
+                'service_name' => 'pharmacy-service',
+                'api_version'  => 'v1'
             ]
         ]);
     }
@@ -267,8 +267,8 @@ class PrescriptionController extends Controller
             'message' => 'Resep berhasil dibuat dan di-audit',
             'data'    => $resep->load('items.obat'),
             'meta'    => [
-                'nama_service' => 'pharmacy-service',
-                'versi_api'    => 'v1'
+                'service_name' => 'pharmacy-service',
+                'api_version'  => 'v1'
             ]
         ], 201);
     }

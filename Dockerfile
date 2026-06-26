@@ -20,7 +20,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Workdir
 WORKDIR /app
 
-# Copy composer
+# Copy composer files dulu untuk layer caching
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts
 

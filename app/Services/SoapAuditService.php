@@ -15,11 +15,13 @@ class SoapAuditService
         try {
             $url = env('SSO_TOKEN_URL', 'https://iae-sso.virtualfri.id/api/v1/auth/token');
             $apiKey = env('SSO_M2M_API_KEY', env('SSO_API_KEY', 'KEY-MHS-176'));
+            $nim = config('services.api_key', '102022400102');
 
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
             ])->post($url, [
                 'api_key' => $apiKey,
+                'nim' => $nim,
             ]);
 
             if ($response->successful()) {

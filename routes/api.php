@@ -26,8 +26,8 @@ Route::get('/v1', function () {
         'message' => 'API Pharmacy Service',
         'data'    => null,
         'meta'    => [
-            'nama_service' => 'pharmacy-service',
-            'versi_api'    => 'v1',
+            'service_name' => 'pharmacy-service',
+            'api_version'  => 'v1',
         ]
     ], 200);
 });

@@ -10,12 +10,13 @@ class CheckApiKey
     public function handle(Request $request, Closure $next): Response
     {
         $apiKey = $request->header('X-IAE-KEY');
-        $validApiKey = env('API_KEY');
+        $validApiKey = config('services.api_key');
 
         if ($apiKey !== $validApiKey) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized - Invalid API Key',
+                'errors' => null,
             ], Response::HTTP_UNAUTHORIZED);
         }
 

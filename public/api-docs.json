@@ -7,13 +7,21 @@
     },
     "servers": [
         {
-            "url": "http://localhost:8080/api/v1",
+            "url": "http://localhost:8000/api/v1",
             "description": "Local server"
         }
     ],
     "tags": [
         {
-            "name": "Resep",
+            "name": "General",
+            "description": "Endpoint umum"
+        },
+        {
+            "name": "Medicines",
+            "description": "Endpoint untuk data obat"
+        },
+        {
+            "name": "Prescriptions",
             "description": "Endpoint untuk pengelolaan resep"
         }
     ],
@@ -32,10 +40,138 @@
         }
     ],
     "paths": {
+        "/": {
+            "get": {
+                "summary": "Root API v1 info",
+                "tags": ["General"],
+                "security": [],
+                "responses": {
+                    "200": {
+                        "description": "API berhasil diakses",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "success",
+                                    "message": "API Pharmacy Service",
+                                    "data": null,
+                                    "meta": {
+                                        "service_name": "pharmacy-service",
+                                        "api_version": "v1"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/medicines": {
+            "get": {
+                "summary": "Ambil daftar obat",
+                "tags": ["Medicines"],
+                "security": [{"ApiKeyAuth": []}],
+                "responses": {
+                    "200": {
+                        "description": "Data berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "success",
+                                    "message": "Data berhasil diambil",
+                                    "data": [
+                                        {
+                                            "id": 1,
+                                            "nama": "Amoxicillin 500mg",
+                                            "jenis": "Tablet",
+                                            "kategori": "Antibiotik",
+                                            "harga": 15000,
+                                            "stock": 50,
+                                            "deskripsi": "Obat antibiotik infeksi bakteri."
+                                        }
+                                    ],
+                                    "meta": {
+                                        "service_name": "pharmacy-service",
+                                        "api_version": "v1"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Tidak terotorisasi",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "error",
+                                    "message": "Unauthorized - Invalid API Key",
+                                    "errors": null
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/medicines/{id}": {
+            "get": {
+                "summary": "Ambil detail obat",
+                "tags": ["Medicines"],
+                "security": [{"ApiKeyAuth": []}],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {"type": "integer"}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data berhasil diambil",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "success",
+                                    "message": "Data berhasil diambil",
+                                    "data": {
+                                        "id": 1,
+                                        "nama": "Amoxicillin 500mg",
+                                        "jenis": "Tablet",
+                                        "kategori": "Antibiotik",
+                                        "harga": 15000,
+                                        "stock": 50,
+                                        "deskripsi": "Obat antibiotik infeksi bakteri."
+                                    },
+                                    "meta": {
+                                        "service_name": "pharmacy-service",
+                                        "api_version": "v1"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Tidak terotorisasi"
+                    },
+                    "404": {
+                        "description": "Obat tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "error",
+                                    "message": "Obat tidak ditemukan",
+                                    "errors": null
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/prescriptions": {
             "get": {
                 "summary": "Ambil semua resep untuk antrian verifikasi",
-                "tags": ["Resep"],
+                "tags": ["Prescriptions"],
                 "security": [{"ApiKeyAuth": []}],
                 "responses": {
                     "200": {
@@ -62,8 +198,8 @@
                                         }
                                     ],
                                     "meta": {
-                                        "nama_service": "pharmacy-service",
-                                        "versi_api": "v1"
+                                        "service_name": "pharmacy-service",
+                                        "api_version": "v1"
                                     }
                                 }
                             }
@@ -76,12 +212,33 @@
             },
             "post": {
                 "summary": "Dokter tulis resep digital",
-                "tags": ["Resep"],
+                "tags": ["Prescriptions"],
                 "security": [{"ApiKeyAuth": []}],
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["id_pasien", "id_kunjungan", "nama_dokter", "items"],
+                                "properties": {
+                                    "id_pasien": {"type": "integer"},
+                                    "id_kunjungan": {"type": "integer"},
+                                    "nama_dokter": {"type": "string"},
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "required": ["id_obat", "jumlah", "dosis"],
+                                            "properties": {
+                                                "id_obat": {"type": "integer"},
+                                                "jumlah": {"type": "integer"},
+                                                "dosis": {"type": "string"}
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                             "example": {
                                 "id_pasien": 1,
                                 "id_kunjungan": 1,
@@ -99,10 +256,48 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Resep berhasil dibuat"
+                        "description": "Resep berhasil dibuat",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "success",
+                                    "message": "Resep berhasil dibuat dan di-audit",
+                                    "data": {
+                                        "id": 1,
+                                        "id_pasien": 1,
+                                        "id_kunjungan": 1,
+                                        "nama_dokter": "Dr. Budi",
+                                        "status": "pending",
+                                        "items": [
+                                            {
+                                                "id_obat": 1,
+                                                "jumlah": 10,
+                                                "dosis": "3x sehari"
+                                            }
+                                        ]
+                                    },
+                                    "meta": {
+                                        "service_name": "pharmacy-service",
+                                        "api_version": "v1"
+                                    }
+                                }
+                            }
+                        }
                     },
                     "401": {
                         "description": "Tidak terotorisasi"
+                    },
+                    "400": {
+                        "description": "Validasi gagal",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "error",
+                                    "message": "Stok obat tidak mencukupi.",
+                                    "errors": null
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -110,7 +305,7 @@
         "/prescriptions/{id}": {
             "get": {
                 "summary": "Detail resep + status dispensed",
-                "tags": ["Resep"],
+                "tags": ["Prescriptions"],
                 "security": [{"ApiKeyAuth": []}],
                 "parameters": [
                     {
@@ -143,15 +338,27 @@
                                         ]
                                     },
                                     "meta": {
-                                        "nama_service": "pharmacy-service",
-                                        "versi_api": "v1"
+                                        "service_name": "pharmacy-service",
+                                        "api_version": "v1"
                                     }
                                 }
                             }
                         }
                     },
+                    "401": {
+                        "description": "Tidak terotorisasi"
+                    },
                     "404": {
-                        "description": "Resep tidak ditemukan"
+                        "description": "Resep tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "example": {
+                                    "status": "error",
+                                    "message": "Resep tidak ditemukan",
+                                    "errors": null
+                                }
+                            }
+                        }
                     }
                 }
             }

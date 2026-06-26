@@ -18,5 +18,33 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Illuminate\Validation\ValidationException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Validation failed',
+                    'errors'  => $e->errors()
+                ], 400);
+            }
+        });
+
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Resource not found',
+                    'errors'  => null
+                ], 404);
+            }
+        });
+
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if ($request->is('api/*')) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => $e->getMessage() ?: 'Internal server error',
+                    'errors'  => null
+                ], 500);
+            }
+        });
     })->create();
